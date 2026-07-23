@@ -45,6 +45,8 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown)
   document.body.style.overflow = ''
 })
+
+const titleId = `modal-title-${Math.random().toString(36).substring(2, 9)}`
 </script>
 
 <template>
@@ -59,6 +61,9 @@ onUnmounted(() => {
         <!-- Modal Scale Transition -->
         <Transition name="scale" appear>
           <div
+            role="dialog"
+            aria-modal="true"
+            :aria-labelledby="titleId"
             :class="[
               'w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 flex flex-col max-h-[90vh]',
               {
@@ -73,12 +78,16 @@ onUnmounted(() => {
             <div
               class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700"
             >
-              <h3 class="text-base font-semibold text-slate-900 dark:text-white truncate">
+              <h3
+                :id="titleId"
+                class="text-base font-semibold text-slate-900 dark:text-white truncate"
+              >
                 {{ title }}
               </h3>
               <button
                 @click="close"
-                class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+                aria-label="Close modal"
+                class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer"
               >
                 <svg
                   class="h-5 w-5"

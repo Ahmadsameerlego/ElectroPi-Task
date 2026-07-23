@@ -72,6 +72,8 @@ const onInput = (event: Event) => {
         :placeholder="placeholder"
         :disabled="disabled"
         :required="required"
+        :aria-invalid="error ? 'true' : 'false'"
+        :aria-describedby="error ? id + '-error' : helperText ? id + '-helper' : undefined"
         :class="[inputClasses, $slots.prefix ? 'pl-10' : '', $slots.suffix ? 'pr-10' : '']"
         @input="onInput"
         @blur="$emit('blur', $event)"
@@ -86,10 +88,19 @@ const onInput = (event: Event) => {
       </span>
     </div>
 
-    <p v-if="error" class="text-xs font-medium text-rose-600 dark:text-rose-400">
+    <p
+      v-if="error"
+      :id="id + '-error'"
+      role="alert"
+      class="text-xs font-medium text-rose-600 dark:text-rose-400"
+    >
       {{ error }}
     </p>
-    <p v-else-if="helperText" class="text-xs text-slate-500 dark:text-slate-400">
+    <p
+      v-else-if="helperText"
+      :id="id + '-helper'"
+      class="text-xs text-slate-500 dark:text-slate-400"
+    >
       {{ helperText }}
     </p>
   </div>

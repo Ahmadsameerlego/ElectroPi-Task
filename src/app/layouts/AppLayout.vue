@@ -102,7 +102,9 @@ const isActive = (path: string) => {
             JD
           </div>
           <div class="overflow-hidden">
-            <h4 class="text-xs font-semibold text-slate-900 dark:text-white truncate">Ahmed Samir</h4>
+            <h4 class="text-xs font-semibold text-slate-900 dark:text-white truncate">
+              Ahmed Samir
+            </h4>
             <span class="text-[10px] text-slate-400 dark:text-slate-500 truncate block"
               >ahmadsamerlego@gmail.com</span
             >

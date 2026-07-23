@@ -107,6 +107,24 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
+  const fetchTaskById = async (id: string): Promise<Task> => {
+    loading.value = true
+    error.value = null
+    try {
+      const existingTask = tasks.value.find((t) => t.id === id)
+      if (existingTask) {
+        return existingTask
+      }
+      return await taskService.getTaskById(id)
+    } catch (err) {
+      const errorObject = err as { message?: string }
+      error.value = errorObject.message || `Failed to fetch task with ID ${id}`
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     tasks,
     loading,
@@ -123,6 +141,7 @@ export const useTasksStore = defineStore('tasks', () => {
     fetchTasks,
     createTask,
     updateTask,
-    deleteTask
+    deleteTask,
+    fetchTaskById
   }
 })

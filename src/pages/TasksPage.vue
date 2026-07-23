@@ -1,30 +1,42 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useTasksStore } from '@/stores/tasks'
+import { ref, onMounted, defineAsyncComponent } from 'vue'
+import { useTasks } from '@/composables/useTasks'
 import { useToast } from '@/composables/useToast'
+import { useConfirm } from '@/composables/useConfirm'
 import type { Task, TaskStatus } from '@/types'
 
 import TaskSearch from '@/components/task/TaskSearch.vue'
 import TaskFilters from '@/components/task/TaskFilters.vue'
 import TaskList from '@/components/task/TaskList.vue'
-import TaskForm from '@/components/task/TaskForm.vue'
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 
-const store = useTasksStore()
+// Lazy loaded component for optimized initial rendering
+const TaskForm = defineAsyncComponent(() => import('@/components/task/TaskForm.vue'))
+
+const { loading, fetchTasks, createTask, updateTask, deleteTask } = useTasks()
 const toast = useToast()
 
-// Modal visibility controllers
-const showFormModal = ref(false)
-const showDeleteModal = ref(false)
+// Programmatic confirmation composable variables
+const {
+  isOpen: isConfirmOpen,
+  title: confirmTitle,
+  message: confirmMessage,
+  confirmText,
+  cancelText,
+  variant: confirmVariant,
+  confirm,
+  accept,
+  cancel
+} = useConfirm()
 
-// Selected task targets
+// Form modal visibility controller
+const showFormModal = ref<boolean>(false)
 const activeTask = ref<Task | null>(null)
-const taskIdToDelete = ref<string | null>(null)
 
 // Initial mount fetch
 onMounted(() => {
-  store.fetchTasks().catch(() => {
+  fetchTasks().catch(() => {
     toast.error('Failed to load initial tasks. Try clicking Retry.')
   })
 })
@@ -39,9 +51,25 @@ const openEditModal = (task: Task) => {
   showFormModal.value = true
 }
 
-const openDeleteModal = (id: string) => {
-  taskIdToDelete.value = id
-  showDeleteModal.value = true
+const openDeleteModal = async (id: string) => {
+  const confirmed = await confirm({
+    title: 'Delete Task',
+    message:
+      'Are you sure you want to delete this task? This action is permanent and cannot be undone.',
+    confirmText: 'Confirm Delete',
+    cancelText: 'Cancel',
+    variant: 'danger'
+  })
+
+  if (confirmed) {
+    try {
+      await deleteTask(id)
+      toast.success('Task deleted successfully!')
+    } catch (err) {
+      const errorObject = err as { message?: string }
+      toast.error(errorObject.message || 'Failed to delete task. Please try again.')
+    }
+  }
 }
 
 const handleFormSubmit = async (formData: {
@@ -52,30 +80,16 @@ const handleFormSubmit = async (formData: {
 }) => {
   try {
     if (activeTask.value) {
-      await store.updateTask(activeTask.value.id, formData)
+      await updateTask(activeTask.value.id, formData)
       toast.success('Task updated successfully!')
     } else {
-      await store.createTask(formData)
+      await createTask(formData)
       toast.success('Task created successfully!')
     }
     showFormModal.value = false
   } catch (err) {
     const errorObject = err as { message?: string }
     toast.error(errorObject.message || 'Operation failed. Please try again.')
-  }
-}
-
-const confirmDelete = async () => {
-  if (!taskIdToDelete.value) return
-  try {
-    await store.deleteTask(taskIdToDelete.value)
-    toast.success('Task deleted successfully!')
-    showDeleteModal.value = false
-  } catch (err) {
-    const errorObject = err as { message?: string }
-    toast.error(errorObject.message || 'Failed to delete task. Please try again.')
-  } finally {
-    taskIdToDelete.value = null
   }
 }
 </script>
@@ -94,7 +108,7 @@ const confirmDelete = async () => {
       </div>
 
       <div>
-        <BaseButton @click="openCreateModal">
+        <BaseButton @click="openCreateModal" aria-haspopup="dialog">
           <template #prefix>
             <svg
               class="h-4.5 w-4.5"
@@ -138,37 +152,32 @@ const confirmDelete = async () => {
     >
       <TaskForm
         :task="activeTask"
-        :loading="store.loading"
+        :loading="loading"
         @submit="handleFormSubmit"
         @cancel="showFormModal = false"
       />
     </BaseModal>
 
-    <!-- Delete Confirmation Dialog -->
-    <BaseModal
-      :show="showDeleteModal"
-      title="Confirm Delete"
-      size="sm"
-      @close="showDeleteModal = false"
-    >
+    <!-- Global Accessible Programmatic Confirm Modal -->
+    <BaseModal :show="isConfirmOpen" :title="confirmTitle" size="sm" @close="cancel">
       <div class="space-y-4">
         <p class="text-sm text-slate-600 dark:text-slate-300 leading-normal">
-          Are you sure you want to delete this task? This action is permanent and cannot be undone.
+          {{ confirmMessage }}
         </p>
 
         <div
           class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-700/50"
         >
-          <BaseButton variant="outline" :disabled="store.loading" @click="showDeleteModal = false">
-            Cancel
+          <BaseButton variant="outline" :disabled="loading" @click="cancel">
+            {{ cancelText }}
           </BaseButton>
           <BaseButton
-            variant="danger"
-            :loading="store.loading"
-            :disabled="store.loading"
-            @click="confirmDelete"
+            :variant="confirmVariant === 'danger' ? 'danger' : 'primary'"
+            :loading="loading"
+            :disabled="loading"
+            @click="accept"
           >
-            Confirm Delete
+            {{ confirmText }}
           </BaseButton>
         </div>
       </div>

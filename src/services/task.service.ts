@@ -11,6 +11,11 @@ export const taskService = {
     return response.data
   },
 
+  async getTaskById(id: string): Promise<Task> {
+    const response = await taskApi.getTaskById(id)
+    return response.data
+  },
+
   async createTask(taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<Task> {
     const response = await taskApi.createTask(taskData)
     return response.data

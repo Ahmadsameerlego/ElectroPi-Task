@@ -1,19 +1,31 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useTasksStore } from '@/stores/tasks'
+import { ref, watch } from 'vue'
+import { useTasks } from '@/composables/useTasks'
+import { useDebounce } from '@/composables/useDebounce'
 import BaseInput from '@/components/ui/BaseInput.vue'
 
-const store = useTasksStore()
+const { search, setSearch } = useTasks()
 
-const searchQuery = computed<string>({
-  get: () => store.search,
-  set: (val) => store.setSearch(val)
+// Local search value initialized from store
+const searchVal = ref<string>(search.value)
+
+// Debounced wrapper for the local search string (300ms throttle)
+const debouncedSearch = useDebounce(searchVal, 300)
+
+// Push debounced changes back to store state
+watch(debouncedSearch, (newVal) => {
+  setSearch(newVal)
+})
+
+// Sync local value when search is cleared/reset from outside (e.g. CTA clear)
+watch(search, (newVal) => {
+  searchVal.value = newVal
 })
 </script>
 
 <template>
   <div class="w-full">
-    <BaseInput v-model="searchQuery" placeholder="Search tasks by title..." class="w-full">
+    <BaseInput v-model="searchVal" placeholder="Search tasks by title..." class="w-full">
       <template #prefix>
         <svg
           class="h-5 w-5 text-slate-400"
@@ -29,11 +41,12 @@ const searchQuery = computed<string>({
           />
         </svg>
       </template>
-      <template #suffix v-if="searchQuery">
+      <template #suffix v-if="searchVal">
         <button
           type="button"
-          @click="searchQuery = ''"
+          @click="searchVal = ''"
           class="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition cursor-pointer"
+          aria-label="Clear search input"
         >
           <svg
             class="h-4 w-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"

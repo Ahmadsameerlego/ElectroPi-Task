@@ -49,11 +49,12 @@ const statusLabel = computed(() => {
       <!-- Card Content -->
       <div class="space-y-3">
         <div class="flex items-start justify-between gap-4">
-          <h3
-            class="text-base font-semibold text-slate-900 dark:text-white break-words flex-1 leading-snug"
+          <router-link
+            :to="`/tasks/${task.id}`"
+            class="text-base font-semibold text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 break-words flex-1 leading-snug transition-colors cursor-pointer outline-none focus-visible:underline focus-visible:text-indigo-600"
           >
             {{ task.title }}
-          </h3>
+          </router-link>
           <span :class="statusBadgeClasses">
             <span
               :class="[
