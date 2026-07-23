@@ -2,10 +2,12 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ROUTES } from '@/constants'
+import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
 const route = useRoute()
 const isSidebarOpen = ref(false)
+const { toasts, remove } = useToast()
 
 const navigationItems = [
   {
@@ -58,7 +60,7 @@ const isActive = (path: string) => {
           </div>
           <div>
             <h2 class="text-sm font-semibold text-slate-900 dark:text-white leading-tight">
-              Antigravity
+              ElectroPi
             </h2>
             <span class="text-xs text-slate-400 dark:text-slate-500">SaaS Platform</span>
           </div>
@@ -100,9 +102,9 @@ const isActive = (path: string) => {
             JD
           </div>
           <div class="overflow-hidden">
-            <h4 class="text-xs font-semibold text-slate-900 dark:text-white truncate">John Doe</h4>
+            <h4 class="text-xs font-semibold text-slate-900 dark:text-white truncate">Ahmed Samir</h4>
             <span class="text-[10px] text-slate-400 dark:text-slate-500 truncate block"
-              >john.doe@example.com</span
+              >ahmadsamerlego@gmail.com</span
             >
           </div>
         </div>
@@ -174,6 +176,100 @@ const isActive = (path: string) => {
         </router-view>
       </main>
     </div>
+
+    <!-- Toast Notification System -->
+    <div
+      class="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 w-full max-w-sm pointer-events-none"
+    >
+      <TransitionGroup name="toast">
+        <div
+          v-for="toast in toasts"
+          :key="toast.id"
+          :class="[
+            'pointer-events-auto flex items-start gap-3 p-4 rounded-xl shadow-lg border text-sm transition-all duration-300',
+            {
+              'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/90 dark:border-emerald-800/80 dark:text-emerald-300':
+                toast.type === 'success',
+              'bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-950/90 dark:border-rose-800/80 dark:text-rose-300':
+                toast.type === 'error',
+              'bg-white border-slate-200 text-slate-800 dark:bg-slate-900/90 dark:border-slate-800 dark:text-slate-300':
+                toast.type === 'info'
+            }
+          ]"
+        >
+          <!-- Type Specific Icons -->
+          <span class="shrink-0 mt-0.5">
+            <svg
+              v-if="toast.type === 'success'"
+              class="h-5 w-5 text-emerald-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <svg
+              v-else-if="toast.type === 'error'"
+              class="h-5 w-5 text-rose-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
+              />
+            </svg>
+            <svg
+              v-else
+              class="h-5 w-5 text-slate-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M11.25 11.25l.041-.02a.75.75 0 111.085 1.085l-.04.02m-2.137.882a.5.5 0 00.58.216l.844-.282a.5.5 0 00.364-.477V12m-5.69-.491a9 9 0 1111.38 0 9 9 0 01-11.38 0z"
+              />
+            </svg>
+          </span>
+
+          <div class="flex-1">
+            <p class="font-bold text-xs uppercase tracking-wider leading-none">
+              {{ toast.type }}
+            </p>
+            <p class="mt-1 text-xs opacity-90 leading-tight">
+              {{ toast.message }}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            @click="remove(toast.id)"
+            class="shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 rounded cursor-pointer"
+          >
+            <svg
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </TransitionGroup>
+    </div>
   </div>
 </template>
 
@@ -186,5 +282,18 @@ const isActive = (path: string) => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.toast-enter-from {
+  opacity: 0;
+  transform: translateY(30px);
+}
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(100px);
 }
 </style>

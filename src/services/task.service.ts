@@ -1,23 +1,27 @@
+import { taskApi } from '@/api/task.api'
 import type { Task } from '@/types'
 
 /**
- * Task Service layer handling business workflow delegations.
- * Architecture stubs only; all methods throw "Not implemented".
+ * Task Service layer handling business workflows and API integration.
+ * Mediates communication between store state and network APIs.
  */
 export const taskService = {
   async fetchTasks(): Promise<Task[]> {
-    throw new Error('Not implemented')
+    const response = await taskApi.getTasks()
+    return response.data
   },
 
-  async createTask(_taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<Task> {
-    throw new Error('Not implemented')
+  async createTask(taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<Task> {
+    const response = await taskApi.createTask(taskData)
+    return response.data
   },
 
-  async updateTask(_id: string, _taskData: Partial<Task>): Promise<Task> {
-    throw new Error('Not implemented')
+  async updateTask(id: string, taskData: Partial<Task>): Promise<Task> {
+    const response = await taskApi.updateTask(id, taskData)
+    return response.data
   },
 
-  async deleteTask(_id: string): Promise<void> {
-    throw new Error('Not implemented')
+  async deleteTask(id: string): Promise<void> {
+    await taskApi.deleteTask(id)
   }
 }

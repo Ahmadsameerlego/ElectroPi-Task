@@ -5,17 +5,15 @@ export const ROUTES = {
 } as const
 
 export const TASK_STATUSES = {
-  BACKLOG: 'backlog',
-  TODO: 'todo',
+  PENDING: 'pending',
   IN_PROGRESS: 'in_progress',
-  COMPLETED: 'completed'
+  DONE: 'done'
 } as const
 
 export const TASK_STATUS_LABELS = {
-  [TASK_STATUSES.BACKLOG]: 'Backlog',
-  [TASK_STATUSES.TODO]: 'To Do',
+  [TASK_STATUSES.PENDING]: 'Pending',
   [TASK_STATUSES.IN_PROGRESS]: 'In Progress',
-  [TASK_STATUSES.COMPLETED]: 'Completed'
+  [TASK_STATUSES.DONE]: 'Done'
 } as const
 
 export const VALIDATION_MESSAGES = {
