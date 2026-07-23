@@ -1,102 +1,152 @@
-# Vue 3 Enterprise Architecture Foundation
+# Antigravity Task Management SaaS Dashboard
 
-A clean, scalable, production-ready frontend architecture boiler-plate built for a Senior Frontend Technical Assessment. This milestone establishes the architectural foundation, core design tokens, responsive layout, reusable UI primitives, router table configuration, Pinia store state schemas, and Axios API layer plumbing.
-
-> [!NOTE]
-> **Milestone 1 Scope**: This phase implements the foundation only. No task management logic, mock API servers, form scripts, validation rules, active store actions, or visual states are active.
+A production-grade, highly scalable Task Management dashboard constructed using Vue 3, TypeScript (Strict Mode), Pinia, Vue Router, Tailwind CSS v4, and Vitest. This application is structured as a senior engineering technical assessment demonstrating modular design, clean separation of concerns, robust type safety, comprehensive unit testing, and keyboard-accessible UI primitives.
 
 ---
 
-## Tech Stack
+## 🚀 Key Features
 
-- **Framework**: [Vue 3](https://vuejs.org/) (Composition API, `<script setup>`)
-- **Build Tool**: [Vite](https://vite.dev/)
-- **Language**: [TypeScript](https://www.typescriptlang.org/) (Strict Mode enabled)
-- **State Management**: [Pinia](https://pinia.vuejs.org/)
-- **Routing**: [Vue Router 4](https://router.vuejs.org/)
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Full Task CRUD**: Instantly create, inspect, edit, and delete task entities with visual state updates.
+- **Debounced Title Search**: Throttled search queries (300ms) optimizing component redraws and preparing for scalability.
+- **Combined Filter Columns**: Jointly filter tasks by status tabs (All, Pending, In Progress, Done) and search queries.
+- **Programmatic Confirmations**: Clean Promise-based `useConfirm` composable managing delete dialog overlays without local boolean state pollution.
+- **Toast Notifications Tray**: Reactive feedback notifications informing users about success/error states on REST API actions.
+- **Task Details View**: Dynamic routing to `/tasks/:id` showcasing task metadata, creation/update logs, and loading/error states.
+- **Mock REST API Layer**: Synthetic unstable API simulation implementing delays (800ms–1200ms) and random failure triggers (15% rate) with manual retry recovery in the UI.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Vue 3](https://vuejs.org/) (Composition API with `<script setup>`)
+- **Build Engine**: [Vite](https://vite.dev/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/) (Strict compiler flags active)
+- **State Engine**: [Pinia](https://pinia.vuejs.org/)
+- **Router**: [Vue Router 4](https://router.vuejs.org/)
+- **Styles**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Testing Engine**: [Vitest](https://vitest.dev/) & [JSDOM](https://github.com/jsdom/jsdom)
 - **HTTP Client**: [Axios](https://axios-http.com/)
 - **Date Utility**: [Day.js](https://day.js.org/)
 - **Code Quality**: [ESLint](https://eslint.org/) & [Prettier](https://prettier.io/)
-- **Package Manager**: [pnpm](https://pnpm.io/)
 
 ---
 
-## Architecture Overview
+## 📐 Architecture & Design Decisions
 
-This project uses a scalable, feature-oriented and layer-oriented structure designed to isolate concerns, support deep typing, and minimize coupling:
+### 1. Separation of Concerns & Service Abstraction
+Components remain "dumb" and contain only template layouts and presentation states. All data queries and state mutations follow a strict hierarchy:
+```
+[ UI View Component ] ➔ [ Composables Interface ] ➔ [ Pinia Store Action ] ➔ [ Service Layer Adapter ] ➔ [ Axios API Client ]
+```
+- **Store (`src/stores`)**: Holds global state properties and actions. Declares derived computations as Pinia getters to prevent state duplication.
+- **Services (`src/services`)**: Business workflow adapter wrapping backend request hooks and handling data translations.
+- **API Client (`src/api`)**: Isolates Axios instances and interceptor configurations.
 
-1. **Router (`src/app/router`)**: Lazy loaded routes matching system states with navigation/scroll helpers.
-2. **Layout (`src/app/layouts`)**: Adaptive, grid-backed shells providing uniform page templates.
-3. **API Client (`src/api`)**: Single-instance Axios engine configured with environment variables, custom timeouts, and centralized error hooks.
-4. **Services (`src/services`)**: Business domain adapters decoupling UI views and network protocols.
-5. **Stores (`src/stores`)**: Normalized global state engines defining state properties only.
-6. **Components (`src/components`)**:
-   - `ui/`: Stateless, generic design tokens and inputs (e.g. Buttons, Modals, Inputs, Cards).
-   - `task/`: Lightweight feature stubs prepared for feature injections.
-7. **Composables (`src/composables`)**: Encapsulated stateful operations.
-8. **Types & Constants (`src/types`, `src/constants`)**: Strict schemas and readonly constants ensuring IDE autocomplete and compiler validation.
+### 2. Programmatic Confirmations (`useConfirm`)
+Replaces conventional template-defined conditional modal boolean flags. Page components call `const confirmed = await confirm({...})` which returns a Promise resolving to `true` or `false` depending on user action, keeping component files clean and readable.
+
+### 3. Component Code Splitting & Performance
+- Uses **Vite Lazy-Loaded Routes** to split pages.
+- Uses `defineAsyncComponent` to load the `TaskForm` module only when a modal is opened.
+- Implements `useDebounce` to throttle search filtering computations.
+
+### 4. Accessibility (a11y)
+- Standard HTML5 semantic section tags.
+- Form items utilize unique randomly generated IDs linking labels to inputs.
+- Input elements declare `:aria-invalid` and `:aria-describedby` pointing to validation errors and helper messages.
+- Error text components employ `role="alert"`.
+- Modals register `role="dialog"`, `aria-modal="true"`, and close on `Escape` keypress.
+- Custom button elements utilize `focus-visible` to hide outline rings during mouse clicks but display them during keyboard navigation.
 
 ---
 
-## Folder Structure
+## 📂 Folder Structure
 
 ```text
 src/
 ├── app/
-│   ├── layouts/     # Reusable layout wrappers (e.g., AppLayout.vue)
-│   ├── router/      # Lazy loaded routing config
-│   └── providers/   # Global providers
+│   ├── layouts/         # AppLayout containing responsive sidebars & toast overlays
+│   └── router/          # Routing declarations with lazy dynamic imports
 ├── api/
-│   ├── client.ts    # Axios HTTP instance & interceptors
-│   └── task.api.ts  # Task API interface declarations
+│   ├── client.ts        # Axios base instance & request/response interceptors
+│   └── task.api.ts      # Unstable mock REST database simulation (15% error rate)
 ├── services/
-│   └── task.service.ts # Task business services throwing "Not implemented"
+│   └── task.service.ts  # Task business services wrapping API calls
 ├── stores/
-│   └── tasks.ts     # Pinia tasks store state schemas
+│   ├── tasks.ts         # Pinia tasks store state, getters & actions
+│   └── tasks.spec.ts    # Store unit test coverage
 ├── pages/
-│   ├── TasksPage.vue
-│   ├── TaskDetailsPage.vue
-│   └── NotFoundPage.vue
+│   ├── TasksPage.vue    # Dashboard view mapping list, filter & search controls
+│   ├── TaskDetailsPage.vue # Detailed task inspector with spinners & retry controls
+│   └── NotFoundPage.vue # Standalone 404 handler
 ├── components/
-│   ├── ui/          # Generic Base elements (BaseButton, BaseInput, etc.)
-│   ├── task/        # Feature stubs (TaskList, TaskCard, etc.)
-│   └── common/      # Common application-wide components
-├── composables/     # useTasks, useValidation, useToast placeholders
-├── types/           # Strong interface models (Task, TaskStatus, etc.)
-├── constants/       # Readonly routes, statuses, endpoints, validations
-├── utils/           # Date formatting, unique IDs, sleeps
-├── assets/          # Static assets and graphics
+│   ├── ui/              # Stateless Generic UI elements (BaseButton, BaseInput, etc.)
+│   └── task/            # Task-specific components (TaskList, TaskCard, etc.)
+├── composables/
+│   ├── useTasks.ts      # Store facade wrapper composable
+│   ├── useDebounce.ts   # Generic value changes debouncer
+│   ├── useConfirm.ts    # Programmatic dialog confirm helper
+│   ├── useToast.ts      # Global shared reactive toast alerts
+│   ├── useValidation.ts # Form validations
+│   └── useValidation.spec.ts # Validation composable tests
+├── types/
+│   └── index.ts         # Strictly typed interfaces (Task, TaskStatus, ApiResponse)
+├── constants/
+│   └── index.ts         # Readonly routes, statuses, messages & endpoints
+├── utils/
+│   ├── date.ts          # Day.js date wrappers
+│   ├── date.spec.ts     # Date utility test specs
+│   ├── id.ts            # Unique ID generator
+│   └── promise.ts       # Delay sleep utility
 └── styles/
-    └── main.css     # Global styles & Tailwind v4 theme configurations
+    └── main.css         # Tailwind v4 import & custom CSS tokens
 ```
 
 ---
 
-## Getting Started
+## ⚙️ How to Run the Project
 
 ### Installation
 
-Ensure you have [pnpm](https://pnpm.io/) installed. Install dependencies by running:
-
+Install packages using `pnpm`:
 ```bash
 pnpm install
 ```
 
 ### Development
 
-To start the Vite development server:
-
+To start Vite's local development server:
 ```bash
 pnpm dev
 ```
 
-### Available Scripts
+### Run Tests
 
-- `pnpm dev`: Starts the local hot-reloading development server.
-- `pnpm build`: Performs type-checking (`vue-tsc`) and bundles files for production.
-- `pnpm preview`: Locally previews the production build.
+Execute unit tests once using Vitest:
+```bash
+pnpm test:run
+```
+To run tests in watch mode:
+```bash
+pnpm test
+```
+
+### Production Build
+
+Compile and bundle files for production release:
+```bash
+pnpm build
+```
+To locally preview the compiled production build:
+```bash
+pnpm preview
+```
 
 ---
 
-*Note: Business features, data persistence, and interactive user experiences will be introduced in subsequent milestones.*
+## 🔮 Future Improvements
+
+- **Authentication Integration**: Secure dashboard routes using JWT tokens or OAuth hooks.
+- **Real REST Backend**: Connect the `api/client.ts` endpoints to a live Node.js/Python server.
+- **Theme Switcher**: Add a configuration toggle to switch between Light and Dark mode using Tailwind class selectors.
+- **Drag-and-Drop Kanban Board**: Integrate interactive Kanban columns allowing drag-and-drop status migrations.

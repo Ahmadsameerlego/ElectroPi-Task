@@ -56,7 +56,7 @@ const isActive = (path: string) => {
           <div
             class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white font-bold text-lg shadow-sm shadow-indigo-200 dark:shadow-none"
           >
-            AG
+            EP
           </div>
           <div>
             <h2 class="text-sm font-semibold text-slate-900 dark:text-white leading-tight">
